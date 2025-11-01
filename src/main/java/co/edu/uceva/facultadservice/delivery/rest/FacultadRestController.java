@@ -30,16 +30,26 @@ public class FacultadRestController {
 
     @GetMapping("/facultades")
     public ResponseEntity<Map<String, Object>> getFacultades() {
-
+        List<Facultad> facultades = facultadService.findAll();
+        if (facultades.isEmpty()) {
+            throw new NoHayFacultadException();
+        }
         Map<String, Object> response = new HashMap<>();
+        response.put(FACULTADES, facultades);
         return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/facultad/page/{page}")
     public ResponseEntity<Object> index(@PathVariable Integer page) {
         Pageable pageable = PageRequest.of(page, 4);
-
+        Page<Facultad> alojamientos = facultadService.findAll(pageable);
+        if (alojamientos.isEmpty()) {
+            throw new PaginaSinFacultadException(page);
+        }
+        return ResponseEntity.ok(alojamientos);
     }
+
 
     @PostMapping("/facultades")
     public ResponseEntity<Map<String, Object>> save(@Valid @RequestBody Facultad facultad, BindingResult result) {
