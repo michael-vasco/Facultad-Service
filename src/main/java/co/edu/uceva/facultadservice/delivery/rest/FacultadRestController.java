@@ -1,11 +1,7 @@
 package co.edu.uceva.facultadservice.delivery.rest;
 
-import co.edu.uceva.facultadservice.domain.exception.FacultadNoEncontradaException;
-import co.edu.uceva.facultadservice.domain.exception.NoHayFacultadException;
-import co.edu.uceva.facultadservice.domain.exception.PaginaSinFacultadException;
 import co.edu.uceva.facultadservice.domain.services.IFacultadService;
 import jakarta.validation.Valid;
-import co.edu.uceva.facultadservice.domain.exception.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,23 +30,15 @@ public class FacultadRestController {
 
     @GetMapping("/facultades")
     public ResponseEntity<Map<String, Object>> getFacultades() {
-        List<Facultad> facultades = facultadService.findAll();
-        if (facultades.isEmpty()) {
-            throw new NoHayFacultadException();
-        }
+
         Map<String, Object> response = new HashMap<>();
-        response.put(FACULTADES, facultades);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/facultad/page/{page}")
     public ResponseEntity<Object> index(@PathVariable Integer page) {
         Pageable pageable = PageRequest.of(page, 4);
-        Page<Facultad> alojamientos = facultadService.findAll(pageable);
-        if (alojamientos.isEmpty()) {
-            throw new PaginaSinFacultadException(page);
-        }
-        return ResponseEntity.ok(alojamientos);
+
     }
 
     @PostMapping("/facultades")
@@ -76,29 +64,5 @@ public class FacultadRestController {
         return ResponseEntity.ok(response);
     }
 
-
-    @PutMapping("/facultades")
-    public ResponseEntity<Map<String, Object>> update(@Valid @RequestBody Facultad facultad, BindingResult result) {
-        if (result.hasErrors()) {
-            throw new ValidationException(result);
-        }
-        facultadService.findById(facultad.getId())
-                .orElseThrow(() -> new FacultadNoEncontradaException(facultad.getId()));
-        Map<String, Object> response = new HashMap<>();
-        Facultad facultadActualizado = facultadService.update(facultad);
-        response.put(MENSAJE, "La facultad ha sido actualizada con éxito!");
-        response.put(FACULTAD, facultadActualizado);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/facultades/{id}")
-    public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
-        Facultad facultad = facultadService.findById(id)
-                .orElseThrow(() -> new FacultadNoEncontradaException(id));
-        Map<String, Object> response = new HashMap<>();
-        response.put(MENSAJE, "La facultad ha sido encontrada con éxito!");
-        response.put(FACULTAD, facultad);
-        return ResponseEntity.ok(response);
-    }
 
 }
