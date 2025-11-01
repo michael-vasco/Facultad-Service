@@ -48,7 +48,7 @@ public class FacultadRestController {
         }
         Map<String, Object> response = new HashMap<>();
         Facultad nuevoAlojamiento = facultadService.save(facultad);
-        response.put(MENSAJE, "El alojamiento ha sido creado con éxito!");
+        response.put(MENSAJE, "El facultad ha sido creada con éxito!");
         response.put(FACULTAD, nuevoAlojamiento);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -63,6 +63,21 @@ public class FacultadRestController {
         response.put(FACULTAD, null);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/facultades")
+    public ResponseEntity<Map<String, Object>> update(@Valid @RequestBody Facultad facultad, BindingResult result) {
+        if (result.hasErrors()) {
+            throw new ValidationException(result);
+        }
+        facultadService.findById(facultad.getId())
+                .orElseThrow(() -> new FacultadNoEncontradaException(facultad.getId()));
+        Map<String, Object> response = new HashMap<>();
+        Facultad facultadActualizado = facultadService.update(facultad);
+        response.put(MENSAJE, "La facultad ha sido actualizada con éxito!");
+        response.put(FACULTAD, facultadActualizado);
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }
