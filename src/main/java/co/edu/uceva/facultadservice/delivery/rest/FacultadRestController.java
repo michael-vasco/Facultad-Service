@@ -78,6 +78,17 @@ public class FacultadRestController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/facultades/{id}")
+    public ResponseEntity<Map<String, Object>> findById(@PathVariable Long id) {
+        Facultad facultad = facultadService.findById(id)
+                .orElseThrow(() -> new FacultadNoEncontradaException(id));
+        Map<String, Object> response = new HashMap<>();
+        response.put(MENSAJE, "La facultad ha sido encontrada con éxito!");
+        response.put(FACULTAD, facultad);
+        return ResponseEntity.ok(response);
+    }
+
+
 
 
 }
