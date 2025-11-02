@@ -1,12 +1,12 @@
 package co.edu.uceva.facultadservice.delivery.rest;
 
+import co.edu.uceva.facultadservice.domain.exception.*;
 import co.edu.uceva.facultadservice.domain.model.Facultad;
+import co.edu.uceva.facultadservice.domain.model.Usuario;
 import co.edu.uceva.facultadservice.domain.services.IFacultadService;
+import co.edu.uceva.facultadservice.domain.services.IUsuarioClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
-import co.edu.uceva.facultadservice.domain.exception.NoHayFacultadException;
-import co.edu.uceva.facultadservice.domain.exception.PaginaSinFacultadException;
-import co.edu.uceva.facultadservice.domain.exception.FacultadNoEncontradaException;
-import co.edu.uceva.facultadservice.domain.exception.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,23 +14,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/api/v1/facultad-service")
 public class FacultadRestController {
 
-    private IFacultadService facultadService;
+    private final IFacultadService facultadService;
+    private final IUsuarioClient usuarioClient;
     private static final String ERROR = "error";
     private static final String MENSAJE = "mensaje";
     private static final String FACULTAD = "facultad";
     private static final String FACULTADES = "facultades";
+    private static final String USUARIOS = "usuarios";
 
-    public FacultadRestController(IFacultadService facultadService) {
+    public FacultadRestController(IFacultadService facultadService, IUsuarioClient usuarioClient) {
         this.facultadService = facultadService;
+        this.usuarioClient = usuarioClient;
     }
 
     @GetMapping("/facultades")
@@ -41,6 +47,25 @@ public class FacultadRestController {
         }
         Map<String, Object> response = new HashMap<>();
         response.put(FACULTADES, facultades);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/decanos")
+    public ResponseEntity<Map<String, Object>> getDocentes() {
+        ObjectMapper mapper = new ObjectMapper();
+        List<Usuario> usuarios = mapper.convertValue(usuarioClient.getUsuarios().getBody().get(USUARIOS), new TypeReference<List<Usuario>>(){});
+        List<Usuario> decanos = new ArrayList<>();
+        Map<String, Object> response = new HashMap<>();
+
+        for(Usuario usuario : usuarios) {
+            if(usuario.getRol().equals("Decano")) {
+                decanos.add(usuario);
+            }
+        }
+        if (decanos.isEmpty()) {
+            throw new NoHayDecanosException();
+        }
+        response.put(USUARIOS, decanos);
         return ResponseEntity.ok(response);
     }
 
