@@ -1,7 +1,12 @@
 package co.edu.uceva.facultadservice.delivery.rest;
 
+import co.edu.uceva.facultadservice.domain.model.Facultad;
 import co.edu.uceva.facultadservice.domain.services.IFacultadService;
 import jakarta.validation.Valid;
+import co.edu.uceva.facultadservice.domain.exception.NoHayFacultadException;
+import co.edu.uceva.facultadservice.domain.exception.PaginaSinFacultadException;
+import co.edu.uceva.facultadservice.domain.exception.FacultadNoEncontradaException;
+import co.edu.uceva.facultadservice.domain.exception.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,11 +48,11 @@ public class FacultadRestController {
     @GetMapping("/facultad/page/{page}")
     public ResponseEntity<Object> index(@PathVariable Integer page) {
         Pageable pageable = PageRequest.of(page, 4);
-        Page<Facultad> alojamientos = facultadService.findAll(pageable);
-        if (alojamientos.isEmpty()) {
+        Page<Facultad> facultades = facultadService.findAll(pageable);
+        if (facultades.isEmpty()) {
             throw new PaginaSinFacultadException(page);
         }
-        return ResponseEntity.ok(alojamientos);
+        return ResponseEntity.ok(facultades);
     }
 
 
@@ -57,9 +62,9 @@ public class FacultadRestController {
             throw new ValidationException(result);
         }
         Map<String, Object> response = new HashMap<>();
-        Facultad nuevoAlojamiento = facultadService.save(facultad);
+        Facultad nuevaFacultad = facultadService.save(facultad);
         response.put(MENSAJE, "El facultad ha sido creada con éxito!");
-        response.put(FACULTAD, nuevoAlojamiento);
+        response.put(FACULTAD, nuevaFacultad);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
