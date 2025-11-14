@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: facultad-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: curso_springboot
+      POSTGRES_USER: devdb
+      POSTGRES_PASSWORD: a1b2c3d4
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - facultad-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devdb -d curso_springboot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Tu aplicación Spring Boot
+  app:
+    build: .  # Construir desde el Dockerfile
+    container_name: facultad-service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuración de base de datos PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/curso_springboot
+      SPRING_DATASOURCE_USERNAME: devdb
+      SPRING_DATASOURCE_PASSWORD: a1b2c3d4
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Configuración del servidor
+      SERVER_PORT: 8080
+      # Logging
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: ERROR
+      LOGGING_LEVEL_ORG_HIBERNATE: ERROR
+      # Opciones de Java
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - facultad-network
+
+# Volumen persistente para PostgreSQL
+volumes:
+  postgres_data:
+    driver: local
+
+# Red personalizada
+networks:
+  facultad-network:
+    driver: bridge
